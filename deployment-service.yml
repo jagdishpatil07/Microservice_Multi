@@ -1,3 +1,5 @@
+# Email Service
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -23,7 +25,8 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
-            drop: [ALL]
+            drop:
+              - ALL
           privileged: false
           readOnlyRootFilesystem: true
         image: jagdish0707/emailservice:latest
@@ -63,7 +66,7 @@ spec:
     port: 5000
     targetPort: 8080
 
-# checkoutservice
+# Checkout Service
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -80,38 +83,38 @@ spec:
     spec:
       serviceAccountName: default
       containers:
-      - name: server
-        image: jagdish0707/checkoutservice:latest
-        ports:
-        - containerPort: 5050
-        readinessProbe:
-          exec:
-            command: ["/bin/grpc_health_probe", "-addr=:5050"]
-        livenessProbe:
-          exec:
-            command: ["/bin/grpc_health_probe", "-addr=:5050"]
-        env:
-        - name: PORT
-          value: "5050"
-        - name: PRODUCT_CATALOG_SERVICE_ADDR
-          value: "productcatalogservice:3550"
-        - name: SHIPPING_SERVICE_ADDR
-          value: "shippingservice:50051"
-        - name: PAYMENT_SERVICE_ADDR
-          value: "paymentservice:50051"
-        - name: EMAIL_SERVICE_ADDR
-          value: "emailservice:5000"
-        - name: CURRENCY_SERVICE_ADDR
-          value: "currencyservice:7000"
-        - name: CART_SERVICE_ADDR
-          value: "cartservice:7070"
-        resources:
-          requests:
-            cpu: 100m
-            memory: 64Mi
-          limits:
-            cpu: 200m
-            memory: 128Mi
+        - name: server
+          image: jagdish0707/checkoutservice:latest
+          ports:
+          - containerPort: 5050
+          readinessProbe:
+            exec:
+              command: ["/bin/grpc_health_probe", "-addr=:5050"]
+          livenessProbe:
+            exec:
+              command: ["/bin/grpc_health_probe", "-addr=:5050"]
+          env:
+          - name: PORT
+            value: "5050"
+          - name: PRODUCT_CATALOG_SERVICE_ADDR
+            value: "productcatalogservice:3550"
+          - name: SHIPPING_SERVICE_ADDR
+            value: "shippingservice:50051"
+          - name: PAYMENT_SERVICE_ADDR
+            value: "paymentservice:50051"
+          - name: EMAIL_SERVICE_ADDR
+            value: "emailservice:5000"
+          - name: CURRENCY_SERVICE_ADDR
+            value: "currencyservice:7000"
+          - name: CART_SERVICE_ADDR
+            value: "cartservice:7070"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
 ---
 apiVersion: v1
 kind: Service
@@ -126,7 +129,7 @@ spec:
     port: 5050
     targetPort: 5050
 
-# recommendationservice
+# Recommendation Service
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -184,7 +187,7 @@ spec:
     port: 8080
     targetPort: 8080
 
-# frontend
+# Frontend
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -198,55 +201,57 @@ spec:
     metadata:
       labels:
         app: frontend
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
     spec:
       serviceAccountName: default
       containers:
-      - name: server
-        image: jagdish0707/frontend:latest
-        ports:
-        - containerPort: 8080
-        readinessProbe:
-          initialDelaySeconds: 10
-          httpGet:
-            path: "/_healthz"
-            port: 8080
-            httpHeaders:
-            - name: "Cookie"
-              value: "shop_session-id=x-readiness-probe"
-        livenessProbe:
-          initialDelaySeconds: 10
-          httpGet:
-            path: "/_healthz"
-            port: 8080
-            httpHeaders:
-            - name: "Cookie"
-              value: "shop_session-id=x-liveness-probe"
-        env:
-        - name: PORT
-          value: "8080"
-        - name: PRODUCT_CATALOG_SERVICE_ADDR
-          value: "productcatalogservice:3550"
-        - name: CURRENCY_SERVICE_ADDR
-          value: "currencyservice:7000"
-        - name: CART_SERVICE_ADDR
-          value: "cartservice:7070"
-        - name: RECOMMENDATION_SERVICE_ADDR
-          value: "recommendationservice:8080"
-        - name: SHIPPING_SERVICE_ADDR
-          value: "shippingservice:50051"
-        - name: CHECKOUT_SERVICE_ADDR
-          value: "checkoutservice:5050"
-        - name: AD_SERVICE_ADDR
-          value: "adservice:9555"
-        - name: ENABLE_PROFILER
-          value: "0"
-        resources:
-          requests:
-            cpu: 100m
-            memory: 64Mi
-          limits:
-            cpu: 200m
-            memory: 128Mi
+        - name: server
+          image: jagdish0707/frontend:latest
+          ports:
+          - containerPort: 8080
+          readinessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              path: "/_healthz"
+              port: 8080
+              httpHeaders:
+              - name: "Cookie"
+                value: "shop_session-id=x-readiness-probe"
+          livenessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              path: "/_healthz"
+              port: 8080
+              httpHeaders:
+              - name: "Cookie"
+                value: "shop_session-id=x-liveness-probe"
+          env:
+          - name: PORT
+            value: "8080"
+          - name: PRODUCT_CATALOG_SERVICE_ADDR
+            value: "productcatalogservice:3550"
+          - name: CURRENCY_SERVICE_ADDR
+            value: "currencyservice:7000"
+          - name: CART_SERVICE_ADDR
+            value: "cartservice:7070"
+          - name: RECOMMENDATION_SERVICE_ADDR
+            value: "recommendationservice:8080"
+          - name: SHIPPING_SERVICE_ADDR
+            value: "shippingservice:50051"
+          - name: CHECKOUT_SERVICE_ADDR
+            value: "checkoutservice:5050"
+          - name: AD_SERVICE_ADDR
+            value: "adservice:9555"
+          - name: ENABLE_PROFILER
+            value: "0"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
 ---
 apiVersion: v1
 kind: Service
@@ -274,40 +279,39 @@ spec:
     port: 80
     targetPort: 8080
 
-# currencyservice ✅ NEWLY ADDED ✅
+# Payment Service
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: currencyservice
+  name: paymentservice
 spec:
   selector:
     matchLabels:
-      app: currencyservice
+      app: paymentservice
   template:
     metadata:
       labels:
-        app: currencyservice
+        app: paymentservice
     spec:
       serviceAccountName: default
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: jagdish0707/currencyservice:latest
+        image: jagdish0707/paymentservice:latest
         ports:
-        - name: grpc
-          containerPort: 7000
+        - containerPort: 50051
         env:
         - name: PORT
-          value: "7000"
+          value: "50051"
         - name: DISABLE_PROFILER
           value: "1"
         readinessProbe:
           exec:
-            command: ["/bin/grpc_health_probe", "-addr=:7000"]
+            command: ["/bin/grpc_health_probe", "-addr=:50051"]
         livenessProbe:
           exec:
-            command: ["/bin/grpc_health_probe", "-addr=:7000"]
+            command: ["/bin/grpc_health_probe", "-addr=:50051"]
         resources:
           requests:
             cpu: 100m
@@ -319,12 +323,16 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: currencyservice
+  name: paymentservice
 spec:
   type: ClusterIP
   selector:
-    app: currencyservice
+    app: paymentservice
   ports:
   - name: grpc
-    port: 7000
-    targetPort: 7000
+    port: 50051
+    targetPort: 50051
+
+# Remaining services (productcatalogservice, cartservice, redis-cart, adservice, currencyservice, shippingservice, loadgenerator) should also be updated similarly.
+
+🛑 Would you like me to continue and give the remaining updated YAMLs as well?
