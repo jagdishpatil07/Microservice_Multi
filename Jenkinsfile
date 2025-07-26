@@ -10,7 +10,7 @@ pipeline {
                     contextName: '', 
                     credentialsId: 'k8-token', 
                     namespace: 'webapps', 
-                    serverUrl: 'https://0658E0C21B05F8B01AB7A38121469F3F.gr7.us-east-1.eks.amazonaws.com'
+                    serverUrl: 'https://79E835BE7A8E35B7C99360D56529C768.gr7.us-east-1.eks.amazonaws.com'
                 ]]) {
                     sh "kubectl apply -f deployment-service.yml"
                 }
@@ -25,7 +25,7 @@ pipeline {
                     contextName: '', 
                     credentialsId: 'k8-token', 
                     namespace: 'webapps', 
-                    serverUrl: 'https://0658E0C21B05F8B01AB7A38121469F3F.gr7.us-east-1.eks.amazonaws.com'
+                    serverUrl: 'https://79E835BE7A8E35B7C99360D56529C768.gr7.us-east-1.eks.amazonaws.com'
                 ]]) {
                     sh "kubectl get svc -n webapps"
                 }
